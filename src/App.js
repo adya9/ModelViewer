@@ -1,8 +1,8 @@
-// This is hardcoded hotspot created 
-
+//made the label dynamic
 import React, { useState, useRef, useEffect } from 'react';
 import './App.css';
 import LabelComp from './component/LabelComp';
+
 
 function App() {
   const [selectedModel, setSelectedModel] = useState('Astronaut');
@@ -12,39 +12,55 @@ function App() {
   const [threeDPosition, setThreeDPosition] = useState(null);
   const modelViewerRef = useRef(null);
 
+
   const handleModelChange = (event) => {
     setSelectedModel(event.target.value);
     setClicked(false);
     setHotspots([]);
   };
 
+
   const handleClicked = () => {
     setClicked(true);
   };
 
+
   const handleModelClick = (event) => {
     if (!clicked || !modelViewerRef.current) return;
 
+
     const { clientX, clientY } = event;
 
+
     setClickPosition({ x: clientX, y: clientY });
+
 
     const modelViewer = modelViewerRef.current;
     const hitResult = modelViewer.positionAndNormalFromPoint(clientX, clientY);
 
+
     if (hitResult) {
       const { position, normal } = hitResult;
+
 
       const newHotspot = {
         position: position.toString(),
         normal: normal.toString(),
-        annotation: 'New Hotspot created'
+        annotation: ''
       };
+
 
       setHotspots([...hotspots, newHotspot]);
       setThreeDPosition({ position: position.toString(), normal: normal.toString() });
       setClicked(false);
     }
+  };
+
+
+  const handleLabelChange = (index, newLabel) => {
+    const updatedHotspots = [...hotspots];
+    updatedHotspots[index].annotation = newLabel;
+    setHotspots(updatedHotspots);
   };
 
   useEffect(() => {
@@ -58,6 +74,7 @@ function App() {
       }
     };
   }, [clicked, hotspots]);
+
 
   return (
     <div className="flex h-screen">
@@ -77,6 +94,7 @@ function App() {
           </select>
         </div>
 
+
         <model-viewer
           id="hotspot-demo"
           ar
@@ -90,7 +108,7 @@ function App() {
           style={{ width: '100%', height: '100%' }}
           ref={modelViewerRef}
         >
-          {hotspots.map((hotspot,index) => (
+          {hotspots.map((hotspot, index) => (
             <button
               key={index}
               className="hotspot"
@@ -98,32 +116,39 @@ function App() {
               data-position={hotspot.position}
               data-normal={hotspot.normal}
             >
-              <div className="annotation">{hotspot.annotation}</div>
+              {hotspot.annotation && (
+                <div className="annotation">{hotspot.annotation}</div>
+              )
+
+              }
             </button>
           ))}
         </model-viewer>
       </div>
 
-      <div className="w-2/12 bg-teal-500 flex flex-col">
-        <button className="py-2 px-5 bg-blue-800 text-white font-semibold rounded-md shadow-md hover:bg-violet-700 focus:outline-none focus:ring focus:ring-blue-200 focus:ring-opacity-75 m-4" onClick={handleClicked}>
+
+      <div className="w-2/12 bg-slate-800 flex flex-col overflow-auto">
+        <button className="py-2 px-5 bg-orange-600 text-white font-semibold rounded-md shadow-md hover:bg-orange-500 m-4" onClick={handleClicked}>
           ADD HOTSPOT
         </button>
         {clicked && (
-          <div className='bg-slate-700 opacity-80 h-20 rounded-md m-4 mt-1 p-4'>
+          <div className='bg-zinc-500 opacity-80 h-20 rounded-md m-4 mt-1 p-4'>
             <p className="text-white align-item-center">Click on the 3D object to Add Hotspot</p>
-            
           </div>
-          
         )}
-        {threeDPosition && (
-          <div>
-            <LabelComp/>
-            </div>
-        )
 
-        }
-        
-        <div className="m-4 p-4 bg-white rounded-md shadow-md">
+        {threeDPosition && (
+          hotspots.map((hotspot, index) => (
+            <LabelComp
+              index={index}
+              label={hotspot.annotation}
+              onLabelChange={handleLabelChange}
+              
+            />
+          ))
+        )}
+
+        {/* <div className="m-4 p-4 bg-white rounded-md shadow-md">
           <h3 className="text-lg font-semibold">Click Coordinates:</h3>
           <p>X: {clickPosition.x}, Y: {clickPosition.y}</p>
           {threeDPosition && (
@@ -133,11 +158,11 @@ function App() {
               <p>Normal: {threeDPosition.normal}</p>
             </>
           )}
-        </div>
+        </div> */}
       </div>
     </div>
   );
 }
 
-export default App;
 
+export default App;
