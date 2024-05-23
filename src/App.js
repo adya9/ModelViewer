@@ -1,4 +1,3 @@
-//made the label dynamic
 import React, { useState, useRef, useEffect } from 'react';
 import './App.css';
 import LabelComp from './component/LabelComp';
@@ -14,7 +13,7 @@ function App() {
   const [currentHotspot, setCurrentHotspot] = useState(null);
   const modelViewerRef = useRef(null);
 
-
+  //This will handle the Model change 
   const handleModelChange = (event) => {
     setSelectedModel(event.target.value);
     setClicked(false);
@@ -22,12 +21,12 @@ function App() {
     setCurrentHotspot(null);
   };
 
-
+  //This will handle ADD HOTSPOT button clicked 
   const handleClicked = () => {
     setClicked(true);
   };
 
-
+  //This will handle getting the x,y,z coordinates from mouse clicked X,Y coordinate 
   const handleModelClick = (event) => {
     if (!clicked || !modelViewerRef.current) return;
 
@@ -48,12 +47,9 @@ function App() {
 
       const newHotspot = {
         id:uuidv4(),
-        // position: position.toString(),
-        // normal: normal.toString(),
-
         position: `${position.x} ${position.y} ${position.z}`,
         normal: `${normal.x} ${normal.y} ${normal.z}`,
-        type:"question",
+        checked:false,
         annotation: ''
       };
       
@@ -67,6 +63,7 @@ function App() {
     }
   };
 
+  //This will handle the dynamic change of the label
   const handleLabelChange = (id, newLabel) => {
     const updatedHotspots = hotspots.map(hotspot =>
       hotspot.id === id ? { ...hotspot, annotation: newLabel } : hotspot
@@ -74,6 +71,7 @@ function App() {
     setHotspots(updatedHotspots);
   };
 
+  //This will handle the hotspot delete and update the current Hotspot pointer
   const handleLabelDelete = (id) => {
     const indexToDelete = hotspots.findIndex(hotspot => hotspot.id === id);
     const updatedHotspots = hotspots.filter(hotspot => hotspot.id !== id);
@@ -95,7 +93,16 @@ function App() {
       setCurrentHotspot(currentHotspot - 1);
     }
   };
-
+  
+  //This will handle the checkbox click
+  const handleCheckedChange = (id) => {
+    const updatedHotspots = hotspots.map((hotspot) =>
+      hotspot.id === id ? { ...hotspot, checked: !hotspot.checked } : hotspot
+    );
+    setHotspots(updatedHotspots);
+  };
+  
+  //This will handle the Previous button functionality and change camera orbit accordingly to the hotspot
   const handlePrevClick = () => {
     if (currentHotspot !== null && currentHotspot > 0) {
       setCurrentHotspot(currentHotspot - 1);
@@ -103,6 +110,7 @@ function App() {
     }
   };
 
+  //This will handle the Next button functionality and change the camera orbit accordingly to the hotspot
   const handleNextClick = () => {
     if (currentHotspot !== null && currentHotspot < hotspots.length - 1) {
       setCurrentHotspot(currentHotspot + 1);
@@ -123,7 +131,7 @@ function App() {
   }, [clicked, hotspots]);
  
 
-  //used the cartesian coordinates and get their sperical coordinates and pass to camera orbit 
+  //This function used the cartesian coordinates and get their sperical coordinates and pass to camera orbit 
   const updateCameraOrbit = (index) => {
     const modelViewer = modelViewerRef.current;
     if (modelViewer && index !== null && index < hotspots.length) {
@@ -172,10 +180,6 @@ function App() {
           ar-modes="webxr"
           camera-controls
           touch-action="pan-y"
-          // camera-orbit="0.2940971513368917rad 6.4386257620807659rad 4.287888690270461m"
-          //camera-orbit="calc(-1.5rad + env(window-scroll-y) * 4rad) calc(0deg + env(window-scroll-y) * 180deg) calc(5m - env(window-scroll-y) * 10m)"
-          //camera-orbit="3.2940971513368917rad 1.4386257620807659rad 4.287888690270461m" 
-          // camera-target={threeDPosition.position}
           src={`${selectedModel}.glb`}
           poster="poster.webp"
           shadow-intensity="1"
@@ -196,7 +200,7 @@ function App() {
             >
 
               {hotspot.annotation && (
-                <div className="annotation">{hotspot.annotation}</div>
+                <div className={`annotation ${hotspot.checked?'checked':''}`}>{hotspot.annotation}</div>
               )
 
               }
@@ -220,8 +224,8 @@ function App() {
           ADD HOTSPOT
         </button>
         {clicked && (
-          <div className='bg-zinc-500 opacity-80 h-20 rounded-md m-4 mt-1 p-4'>
-            <p className="text-white align-item-center">Click on the 3D object to Add Hotspot</p>
+          <div className='flex felx-col bg-zinc-500 opacity-80 rounded-md m-4 mt-1 p-4'>
+            <p className="text-white self-center ">Click on the 3D object to Add Hotspot</p>
           </div>
         )}
 
@@ -233,22 +237,12 @@ function App() {
               label={hotspot.annotation}
               onLabelChange={handleLabelChange}
               onDelete={handleLabelDelete}
+              onChecked={handleCheckedChange}
 
             />
           ))
         )}
 
-        {/* <div className="m-4 p-4 bg-white rounded-md shadow-md">
-          <h3 className="text-lg font-semibold">Click Coordinates:</h3>
-          <p>X: {clickPosition.x}, Y: {clickPosition.y}</p>
-          {threeDPosition && (
-            <>
-              <h3 className="text-lg font-semibold">3D Coordinates:</h3>
-              <p>Position: {threeDPosition.position}</p>
-              <p>Normal: {threeDPosition.normal}</p>
-            </>
-          )}
-        </div> */}
       </div>
     </div>
   );
