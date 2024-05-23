@@ -61,6 +61,8 @@
   background-color: rgba(255, 0, 0, 0.5);
 }
 .checked{
-  border: 1px solid green;
-  background-color: rgb(181, 255, 147);
+  background-image: url("https://i.pinimg.com/736x/c9/0d/aa/c90daad8cb3b5a4f58ebf1594d8530fd.jpg");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
 }

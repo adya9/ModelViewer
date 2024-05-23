@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './App.css';
 import LabelComp from './component/LabelComp';
-import {v4 as uuidv4} from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 
 
 function App() {
@@ -44,15 +44,23 @@ function App() {
     if (hitResult) {
       const { position, normal } = hitResult;
 
+      const cameraOrbit = modelViewer.getCameraOrbit();
+
+      // Convert radians to degrees as camera orbit take default value in degree
+      const [thetaRad, phiRad, radius] = cameraOrbit.toString().split(' ');
+      const thetaDeg = parseFloat(thetaRad) * (180 / Math.PI);
+      const phiDeg = parseFloat(phiRad) * (180 / Math.PI);
+      const cameraOrbitInDegrees = `${thetaDeg}deg ${phiDeg}deg ${radius}`;
 
       const newHotspot = {
-        id:uuidv4(),
+        id: uuidv4(),
         position: `${position.x} ${position.y} ${position.z}`,
         normal: `${normal.x} ${normal.y} ${normal.z}`,
-        checked:false,
-        annotation: ''
+        checked: false,
+        annotation: '',
+        cameraOrbit: cameraOrbitInDegrees
       };
-      
+
       const newHotspotJSON = JSON.stringify(newHotspot);
       console.log(newHotspotJSON);
 
@@ -78,22 +86,22 @@ function App() {
     setHotspots(updatedHotspots);
 
     if (indexToDelete === currentHotspot) {
-     
+
       if (updatedHotspots.length === 0) {
         setCurrentHotspot(null);
       } else if (indexToDelete === updatedHotspots.length) {
-       
+
         setCurrentHotspot(updatedHotspots.length - 1);
       } else {
-       
+
         setCurrentHotspot(indexToDelete);
       }
     } else if (indexToDelete < currentHotspot) {
-      
+
       setCurrentHotspot(currentHotspot - 1);
     }
   };
-  
+
   //This will handle the checkbox click
   const handleCheckedChange = (id) => {
     const updatedHotspots = hotspots.map((hotspot) =>
@@ -101,7 +109,7 @@ function App() {
     );
     setHotspots(updatedHotspots);
   };
-  
+
   //This will handle the Previous button functionality and change camera orbit accordingly to the hotspot
   const handlePrevClick = () => {
     if (currentHotspot !== null && currentHotspot > 0) {
@@ -129,28 +137,16 @@ function App() {
       }
     };
   }, [clicked, hotspots]);
- 
 
-  //This function used the cartesian coordinates and get their sperical coordinates and pass to camera orbit 
+
+  //This function used the change the camera orbit
   const updateCameraOrbit = (index) => {
     const modelViewer = modelViewerRef.current;
     if (modelViewer && index !== null && index < hotspots.length) {
       const hotspot = hotspots[index];
-      const position = hotspot.position.split(' ').map(Number);
-      console.log("Position is"+ position);
+      modelViewer.cameraOrbit = hotspot.cameraOrbit;
+      console.log("orbit is " + hotspot.cameraOrbit);
 
-      if (position.length === 3) {
-        const [x, y, z] = position;
-
-        const radius = Math.sqrt(x * x + y * y + z * z);
-        const theta = Math.atan2(y, x);
-        const phi = Math.acos(z / radius);
-
-        const newCameraOrbit = `${theta}rad ${phi}rad ${radius}m`;
-        modelViewer.cameraOrbit = newCameraOrbit;
-        console.log("New orbit is "+newCameraOrbit);
-       
-      }
     }
   };
 
@@ -183,29 +179,28 @@ function App() {
           src={`${selectedModel}.glb`}
           poster="poster.webp"
           shadow-intensity="1"
-         
           style={{ width: '100%', height: '100%' }}
           ref={modelViewerRef}
         >
-          
-          {hotspots.map((hotspot,index) => {
+
+          {hotspots.map((hotspot, index) => {
             console.log(hotspot)
             return <button
               key={hotspot.id}
-              className={`hotspot ${index === currentHotspot ? 'highlight' : ''}`}
+              className={`hotspot ${index === currentHotspot ? 'highlight' : ''} ${hotspot.checked ? 'checked' : ''}`}
               slot={`hotspot-${hotspot.id}`}
               data-position={hotspot.position}
               data-normal={hotspot.normal}
-              
+
             >
 
-              {hotspot.annotation && (
-                <div className={`annotation ${hotspot.checked?'checked':''}`}>{hotspot.annotation}</div>
+              {(index === currentHotspot || !hotspot.checked) && hotspot.annotation && (
+                <div className={`annotation`}>{hotspot.annotation}</div>
               )
 
               }
             </button>
-            
+
           }
 
           )}
